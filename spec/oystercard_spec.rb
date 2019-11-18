@@ -7,7 +7,11 @@ describe Oystercard do
       expect(subject.balance).to eq 0
     end
   end
-
+  describe "#top_up" do
+    it "it increases the balance by 10 when added top through arguement of top_up" do
+      expect(subject.top_up(10)).to eq 10
+    end
+  end
 end
 
 #NameError
