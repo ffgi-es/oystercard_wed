@@ -13,7 +13,9 @@ describe Oystercard do
     end
 
     it "raises an error when top up increases balance over 90 pounds" do
-      expect { subject.top_up(91) }.to raise_error ("over max balance of #{Oystercard::MAX_BALANCE}")
+      max_balance = Oystercard::MAX_BALANCE
+      subject.top_up(max_balance)
+      expect { subject.top_up 1 }.to raise_error ("top up over max balance")
     end
   end
 end
