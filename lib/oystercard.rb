@@ -11,4 +11,8 @@ class Oystercard
     fail "top up over max balance" if @balance + value > MAX_BALANCE
     @balance += value
   end
+
+  def deduct(fare)
+    @balance -= fare
+  end
 end

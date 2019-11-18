@@ -18,6 +18,13 @@ describe Oystercard do
       expect { subject.top_up 1 }.to raise_error ("top up over max balance")
     end
   end
+
+  describe "#deduct" do
+    it "reduces the balance by 3 after topping up 10" do
+      subject.top_up(10)
+      expect { subject.deduct(3) }.to change {subject.balance}.by -3
+    end
+  end
 end
 
 #NameError
