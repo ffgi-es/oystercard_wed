@@ -26,11 +26,15 @@ describe Oystercard do
     end
   end
 
-
   describe "#touch_in" do
     it "starts a journey when touching in" do
+      subject.top_up(10)
       subject.touch_in
       expect(subject.in_journey?).to eq true
+    end
+
+    it "raises an error if balance at touch_in < #{Oystercard::MINIMUM_FARE}" do
+      expect { subject.touch_in }.to raise_error ("Please top up before travelling")
     end
   end
 
