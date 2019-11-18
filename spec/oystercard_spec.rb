@@ -11,6 +11,10 @@ describe Oystercard do
     it "it increases the balance by 10 when added top through arguement of top_up" do
       expect(subject.top_up(10)).to eq 10
     end
+
+    it "raises an error when top up increases balance over 90 pounds" do
+      expect { subject.top_up(91) }.to raise_error ("over max balance of #{Oystercard::MAX_BALANCE}")
+    end
   end
 end
 
