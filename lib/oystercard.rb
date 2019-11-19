@@ -14,10 +14,6 @@ class Oystercard
     @balance += value
   end
 
-  def deduct(fare)
-    @balance -= fare
-  end
-
   def touch_in
     fail "Please top up before travelling" if @balance < MINIMUM_FARE
     @in_journey = true
@@ -25,11 +21,17 @@ class Oystercard
 
   def touch_out
     @in_journey = false
+    deduct(MINIMUM_FARE)
   end
 
-  # private
-  # attr_reader :in_journey
   def in_journey?
     @in_journey
   end
+
+  private
+  # attr_reader :in_journey
+  def deduct(fare)
+    @balance -= fare
+  end
+
 end
