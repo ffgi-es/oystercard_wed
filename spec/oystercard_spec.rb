@@ -1,12 +1,14 @@
 require './lib/oystercard.rb'
 
 describe Oystercard do
+  let(:station) { double(:station) }
 
   describe "#initialize" do
     it "the balance should be 0 as default" do
       expect(subject.balance).to eq 0
     end
   end
+
   describe "#top_up" do
     it "it increases the balance by 10 when added top through arguement of top_up" do
       expect(subject.top_up(10)).to eq 10
@@ -22,12 +24,18 @@ describe Oystercard do
   describe "#touch_in" do
     it "starts a journey when touching in" do
       subject.top_up(10)
-      subject.touch_in
+      subject.touch_in station
       expect(subject.in_journey?).to eq true
     end
 
     it "raises an error if balance at touch_in < #{Oystercard::MINIMUM_FARE}" do
-      expect { subject.touch_in }.to raise_error ("Please top up before travelling")
+      expect { subject.touch_in station }.to raise_error ("Please top up before travelling")
+    end
+
+    it "records entry station" do
+      subject.top_up 10
+      subject.touch_in station
+      expect(subject.entry_station).to eq station
     end
   end
 
@@ -40,7 +48,7 @@ describe Oystercard do
     context "on a journey" do
       before :each do
         subject.top_up(10)
-        subject.touch_in
+        subject.touch_in station
       end
 
       it "should deduct the minimum fare from the balance" do
@@ -51,6 +59,11 @@ describe Oystercard do
       it "should set in_journey to false" do
         subject.touch_out
         expect(subject.in_journey?).to eq false
+      end
+
+      it "should erase the entry station upon touch_out" do
+        subject.touch_out
+        expect(subject.entry_station).to eq nil
       end
 
     end
