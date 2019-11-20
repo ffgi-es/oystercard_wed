@@ -3,6 +3,10 @@ require './lib/oystercard.rb'
 describe Oystercard do
   let(:station) { double(:station) }
   let(:station2) { double(:station2) }
+  let(:journey) { double(:journey, start: nil, finish: nil) }
+  let(:journey_class) { double(:Journey, new: journey) }
+
+  subject{ Oystercard.new(journey_class) }
 
   describe "#initialize" do
     it "the balance should be 0 as default" do
@@ -28,20 +32,37 @@ describe Oystercard do
   end
 
   describe "#touch_in" do
-    it "starts a journey when touching in" do
-      subject.top_up(10)
-      subject.touch_in station
-      expect(subject.in_journey?).to eq true
+
+    before :each do
+      allow(journey).to receive(:complete?).and_return(false)
     end
 
     it "raises an error if balance at touch_in < #{Oystercard::MINIMUM_FARE}" do
       expect { subject.touch_in station }.to raise_error ("Please top up before travelling")
     end
 
-    it "records entry station" do
-      subject.top_up 10
-      subject.touch_in station
-      expect(subject.entry_station).to eq station
+    context "topped up" do
+
+      before :each do
+        subject.top_up(Oystercard::MAX_BALANCE)
+      end
+
+      it "starts a journey when touching in" do
+        subject.touch_in station
+        expect(subject.in_journey?).to eq true
+      end
+
+      it "should start the journey" do
+        expect(journey).to receive(:start)
+        subject.touch_in(station)
+      end
+
+      it "records entry station" do
+        allow(journey).to receive(:entry).and_return(station)
+        subject.touch_in station
+        expect(subject.entry_station).to eq station
+      end
+
     end
   end
 
@@ -54,6 +75,7 @@ describe Oystercard do
       before :each do
         subject.top_up(10)
         subject.touch_in station
+        allow(journey).to receive(:complete?).and_return(false)
       end
 
       it "should deduct the minimum fare from the balance" do
@@ -63,17 +85,19 @@ describe Oystercard do
 
       it "should set in_journey to false" do
         subject.touch_out(station2)
+        allow(journey).to receive(:complete?).and_return(true)
         expect(subject.in_journey?).to eq false
       end
 
       it "should erase the entry station upon touch_out" do
         subject.touch_out(station2)
+        allow(journey).to receive(:complete?).and_return(true)
         expect(subject.entry_station).to eq nil
       end
 
       it "should add the journey to the history" do
         subject.touch_out(station2)
-        expect(subject.history).to eq [{entry: station , exit: station2}]
+        expect(subject.history).to eq [journey]
       end
 
     end
