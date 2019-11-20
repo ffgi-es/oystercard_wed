@@ -5,8 +5,10 @@ describe Oystercard do
   let(:station2) { double(:station2) }
   let(:journey) { double(:journey, start: nil, finish: nil) }
   let(:journey_class) { double(:Journey, new: journey) }
+  let(:min_fare) { 1 }
+  let(:penalty_fare) { 6 }
 
-  subject{ Oystercard.new(journey_class) }
+  subject{ Oystercard.new(journey_class, min_fare, penalty_fare) }
 
   describe "#initialize" do
     it "the balance should be 0 as default" do
@@ -37,7 +39,7 @@ describe Oystercard do
       allow(journey).to receive(:complete?).and_return(false)
     end
 
-    it "raises an error if balance at touch_in < #{Oystercard::MINIMUM_FARE}" do
+    it "raises an error if balance at touch_in is below minimum fare" do
       expect { subject.touch_in station }.to raise_error ("Please top up before travelling")
     end
 
@@ -63,12 +65,16 @@ describe Oystercard do
         expect(subject.entry_station).to eq station
       end
 
+      it "should enforce penalty fare" do
+        subject.touch_in(station)
+        expect { subject.touch_in(station) }.to change { subject.balance }.by(-penalty_fare)
+      end
     end
   end
 
   describe "#touch_out" do
-    it "throws an error if touch out without touch in" do
-      expect { subject.touch_out(station2) }.to raise_error "unable to touch out"
+    it "should enforce penalty fare" do
+      expect { subject.touch_out(station2) }.to change { subject.balance }.by(-penalty_fare)
     end
 
     context "on a journey" do
@@ -79,8 +85,7 @@ describe Oystercard do
       end
 
       it "should deduct the minimum fare from the balance" do
-        min = Oystercard::MINIMUM_FARE
-        expect { subject.touch_out(station2) }.to change { subject.balance }.by(-min)
+        expect { subject.touch_out(station2) }.to change { subject.balance }.by(-min_fare)
       end
 
       it "should set in_journey to false" do
